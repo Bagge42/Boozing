@@ -36,4 +36,8 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(BONUS, name);
         startActivity(intent);
     }
+
+    private void pushTestEmil(){
+        int i = 1;
+    }
 }
