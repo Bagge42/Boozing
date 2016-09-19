@@ -25,7 +25,9 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editText" />
+            android:id="@+id/editText"
+            android:hint="@string/edit_message"/>
+
 
         <Button
             android:layout_width="wrap_content"
