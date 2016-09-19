@@ -16,13 +16,19 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Scanner;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private boolean movedAlready = true;
     private GoogleMap mMap;
+    private Location lastLoc;
+    public LocationManager locationManager;
+    private String name;
+    private Marker myLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,12 +38,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, locationListener);
+        lastLoc = new Location("");
+
         Intent intent = getIntent();
-        String msg = intent.getStringExtra(MainActivity.BONUS);
+        name = intent.getStringExtra(MainActivity.BONUS);
         /*Scanner sc = new Scanner(msg);
         double lat = sc.nextDouble(), lng = sc.nextDouble();*/
-        Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+        //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
     }
+
+    private final LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            lastLoc = location;
+            LatLng position = new LatLng(lastLoc.getLatitude(), lastLoc.getLongitude());
+            myLocation.setPosition(position);
+            if(movedAlready) {
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+                movedAlready = false;
+            }
+//            Toast.makeText(getBaseContext(), ""+location.getLongitude(), Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
 
     /**
      * Manipulates the map once available.
@@ -53,8 +103,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        LatLng sydney = new LatLng(0, 0);
+        myLocation = mMap.addMarker(new MarkerOptions().position(sydney).title(name));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 }
