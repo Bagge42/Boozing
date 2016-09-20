@@ -23,9 +23,9 @@ import java.util.Scanner;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    private boolean movedAlready = true;
+    private boolean movedAlready = true; //What for???
     private GoogleMap mMap;
-    private Location lastLoc;
+    private Location lastLoc; //Users current or last known location.
     public LocationManager locationManager;
     private String name;
     private Marker myLocation;
@@ -62,7 +62,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-            lastLoc = location;
+            lastLoc = location; //Last location becomes current locating... for a while...
             LatLng position = new LatLng(lastLoc.getLatitude(), lastLoc.getLongitude());
             myLocation.setPosition(position);
             if(movedAlready) {
@@ -70,6 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 movedAlready = false;
             }
 //            Toast.makeText(getBaseContext(), ""+location.getLongitude(), Toast.LENGTH_LONG).show();
+            //Run a method for pushing users location to server. aprox. 1min. interval
         }
 
         @Override
