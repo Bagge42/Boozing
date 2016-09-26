@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hej"
+            android:text="Welcome, enter your name below"
             android:id="@+id/textView" />
 
         <EditText
@@ -30,15 +30,9 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Klik her"
+            android:text="Go boozing"
             android:id="@+id/button"
             android:onClick="sendMessage"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="New Text"
-            android:id="@+id/textView2" />
 
     </LinearLayout>
 </RelativeLayout>
