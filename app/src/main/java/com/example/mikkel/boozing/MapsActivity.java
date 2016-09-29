@@ -18,6 +18,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Scanner;
 
@@ -29,6 +31,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public LocationManager locationManager;
     private String name;
     private Marker myLocation;
+
+    //EV -Firebase
+    DatabaseReference mRootRef;
+    DatabaseReference mMembersRef;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +45,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        //EV -Firebase
+        mRootRef = FirebaseDatabase.getInstance().getReference(); //mDatabase.getReference("Child");
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -107,5 +118,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(0, 0);
         myLocation = mMap.addMarker(new MarkerOptions().position(sydney).title(name));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mMembersRef = mRootRef.child("Members");
     }
 }
