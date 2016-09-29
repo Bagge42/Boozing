@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -18,9 +19,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -36,6 +42,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DatabaseReference mRootRef;
     DatabaseReference mMembersRef;
 
+    ArrayList<Member> mMembersList;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +54,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        Intent intent = getIntent();
+        name = intent.getStringExtra(MainActivity.BONUS);
+
         //EV -Firebase
         mRootRef = FirebaseDatabase.getInstance().getReference(); //mDatabase.getReference("Child");
+        mMembersList = new ArrayList<Member>();
+
+        mRootRef.child("Members").push().setValue(new Member(name, 0, 0));
+//        DatabaseReference newLat = newUser.push();
+//        DatabaseReference newLng = newUser.push();
+//        newUser.setValue(name);
+//        newLat.setValue(0);
+//        newLng.setValue(0);
+
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -63,8 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         lastLoc = new Location("");
 
-        Intent intent = getIntent();
-        name = intent.getStringExtra(MainActivity.BONUS);
+
         /*Scanner sc = new Scanner(msg);
         double lat = sc.nextDouble(), lng = sc.nextDouble();*/
         //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
@@ -124,6 +143,72 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
 
+
+
+
         mMembersRef = mRootRef.child("Members");
+
+
+
+        mMembersRef.addChildEventListener(new ChildEventListener() {
+
+
+//            ArrayList<String> list = mMembersList.get(i);
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                mMembersList.add(new Member(dataSnapshot.getKey(), 0,0));
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+
+
+//                mMembersList.add(s);
+
+//                memberName = dataSnapshot.getValue(String.class);
+//                System.out.println("The member is..." + mMembersList.get(1));
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+        });
+
+//        mMembersRef.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                String memberName;
+//                String content;
+//
+//                content = dataSnapshot.getValue(String.class);
+//                System.out.println("The member is..." + content);
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+
+
+
+
     }
 }
