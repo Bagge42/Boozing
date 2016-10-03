@@ -37,6 +37,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public LocationManager locationManager;
     private String name;
     private Marker myLocation;
+    private String thisKey = "";
 
     //EV -Firebase
     DatabaseReference mRootRef;
@@ -60,8 +61,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //EV -Firebase
         mRootRef = FirebaseDatabase.getInstance().getReference(); //mDatabase.getReference("Child");
         mMembersList = new ArrayList<Member>();
+        mMembersRef = mRootRef.child("Members");
 
-        mRootRef.child("Members").push().setValue(new Member(name, 0, 0));
+        DatabaseReference my_ref = mMembersRef.push();
+        thisKey = my_ref.getKey();
+        Member memberMe = new Member(name, 0, 0, thisKey);
+        my_ref.setValue(memberMe);
+        mMembersList.add(memberMe);
 //        DatabaseReference newLat = newUser.push();
 //        DatabaseReference newLng = newUser.push();
 //        newUser.setValue(name);
@@ -83,7 +89,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         lastLoc = new Location("");
 
-
         /*Scanner sc = new Scanner(msg);
         double lat = sc.nextDouble(), lng = sc.nextDouble();*/
         //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
@@ -95,6 +100,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             lastLoc = location; //Last location becomes current locating... for a while...
             LatLng position = new LatLng(lastLoc.getLatitude(), lastLoc.getLongitude());
             myLocation.setPosition(position);
+            mMembersRef.child(thisKey).child("lat").setValue(lastLoc.getLatitude());
+            mMembersRef.child(thisKey).child("lng").setValue(lastLoc.getLongitude());
             if(movedAlready) {
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
                 movedAlready = false;
@@ -143,13 +150,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
 
-
-
-
-        mMembersRef = mRootRef.child("Members");
-
-
-
         mMembersRef.addChildEventListener(new ChildEventListener() {
 
 
@@ -157,9 +157,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-                mMembersList.add(new Member(dataSnapshot.getKey(), 0,0));
-
 
             }
 
@@ -171,8 +168,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-
-
+                for(Member m: mMembersList) {
+                    if(dataSnapshot.getKey() == m.getKey() & thisKey != m.getKey()){
+                        m.setLat(Double.parseDouble(dataSnapshot.child("lat").getValue().toString()));
+                        m.setLng(Double.parseDouble(dataSnapshot.child("lng").getValue().toString()));
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(m.getLat(), m.getLng())).title(m.getName()));
+                    }
+                }
 //                mMembersList.add(s);
 
 //                memberName = dataSnapshot.getValue(String.class);
@@ -190,6 +192,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+
+
+
 
 //        mMembersRef.addValueEventListener(new ValueEventListener() {
 //            @Override
