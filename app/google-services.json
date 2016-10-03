@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "108867013259",
+    "firebase_url": "https://boozingshared.firebaseio.com",
+    "project_id": "boozingshared",
+    "storage_bucket": "boozingshared.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:108867013259:android:93df4a318d510699",
+        "android_client_info": {
+          "package_name": "com.example.mikkel.boozing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "108867013259-oa73becmvdnti7bke9tmu1j6a4ti9nng.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaDZJlojxRLxo2FSzJNnePMCUin711Q9g"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
