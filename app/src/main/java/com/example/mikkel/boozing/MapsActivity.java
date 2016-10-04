@@ -74,7 +74,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        newLat.setValue(0);
 //        newLng.setValue(0);
 
-
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -157,7 +156,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if(dataSnapshot.getKey().equals(thisKey)) {
 
+                }
+                else {
+                    String name = dataSnapshot.child("name").getValue().toString();
+                    double lat = Double.parseDouble(dataSnapshot.child("lat").getValue().toString());
+                    double lng = Double.parseDouble(dataSnapshot.child("lng").getValue().toString());
+                    Member m = new Member(name, lat, lng, dataSnapshot.getKey());
+                    mMembersList.add(m);
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(name));
+                }
             }
 
             @Override
@@ -169,7 +178,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
                 for(Member m: mMembersList) {
-                    if(dataSnapshot.getKey() == m.getKey() & thisKey != m.getKey()){
+                    if(dataSnapshot.getKey().equals(m.getKey()) & !thisKey.equals(m.getKey())){
                         m.setLat(Double.parseDouble(dataSnapshot.child("lat").getValue().toString()));
                         m.setLng(Double.parseDouble(dataSnapshot.child("lng").getValue().toString()));
                         mMap.addMarker(new MarkerOptions().position(new LatLng(m.getLat(), m.getLng())).title(m.getName()));
