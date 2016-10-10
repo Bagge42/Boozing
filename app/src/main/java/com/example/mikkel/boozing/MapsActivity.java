@@ -39,6 +39,7 @@ import java.util.Scanner;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    public final static String keyMessage = "Ved stadig ikke hvad den her gør";
     private boolean movedAlready = true; //What for???
     private String friendName;
     private GoogleMap mMap;
@@ -49,16 +50,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String thisKey = "";
     private WifiManager mWifiManager;
     private String thisSSID = "";
-    private ArrayList<Friend> friends = new ArrayList<Friend>();
 
     //EV -Firebase
     DatabaseReference mRootRef;
     DatabaseReference mMembersRef;
+    DatabaseReference friendsRef;
+    DatabaseReference friends_ref;
 
     ArrayList<Member> mMembersList;
 
     public void sendMessage(View view) {
         Intent intent = new Intent(this, Main2Activity.class);
+        intent.putExtra(keyMessage, thisKey);
         startActivity(intent);
     }
 
@@ -71,10 +74,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        Intent intent = getIntent();
-        friendName = intent.getStringExtra(Main2Activity.EXTRA_MESSAGE);
-        name = intent.getStringExtra(MainActivity.BONUS);
-
         //wifi stuff
         thisSSID = getSSIDInfo();
         mWifiManager  = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -86,12 +85,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMembersList = new ArrayList<Member>();
         mMembersRef = mRootRef.child("Members");
 
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        name = intent.getStringExtra(MainActivity.BONUS);
         if(name != null) {
             DatabaseReference my_ref = mMembersRef.push();
             thisKey = my_ref.getKey();
+            friendsRef = mMembersRef.child(thisKey);
+            friends_ref = friendsRef.push();
             Member memberMe = new Member(name, 0, 0, thisKey, thisSSID);
             my_ref.setValue(memberMe);
             mMembersList.add(memberMe);
+        }
+        else {
+            friendName = extras.getString(Main2Activity.EXTRA_MESSAGE);
+            thisKey = extras.getString(Main2Activity.KEY_MESSAGE);
+            DatabaseReference fRef = friends_ref.push();
+            String friendsKey = fRef.getKey();
+            Friend friend = new Friend(friendName, 00);
+            fRef.setValue(friend);
         }
 
 //        DatabaseReference newLat = newUser.push();
@@ -99,7 +111,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        newUser.setValue(name);
 //        newLat.setValue(0);
 //        newLng.setValue(0);
-        System.out.println("########################################################################" + thisKey);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -165,8 +176,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             lastLoc = location; //Last location becomes current locating... for a while...
             LatLng position = new LatLng(lastLoc.getLatitude(), lastLoc.getLongitude());
             myLocation.setPosition(position);
-            mMembersRef.child(thisKey).child("lat").setValue(lastLoc.getLatitude());
-            mMembersRef.child(thisKey).child("lng").setValue(lastLoc.getLongitude());
+            if(name != null) {
+                mMembersRef.child(thisKey).child("lat").setValue(lastLoc.getLatitude());
+                mMembersRef.child(thisKey).child("lng").setValue(lastLoc.getLongitude());
+            }
             String newWifiMaybe = getSSIDInfo();
             if(!newWifiMaybe.equals(thisSSID)) {
                 mMembersRef.child(thisKey).child("wifi").setValue(newWifiMaybe);
@@ -227,7 +240,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if(!dataSnapshot.getKey().equals(thisKey)) {
+                if(dataSnapshot.getKey().equals(thisKey)) {
+                    name = dataSnapshot.child("name").getValue().toString();
+                }
+                else {
                     String wifi = dataSnapshot.child("wifi").getValue().toString();
                     String name = dataSnapshot.child("name").getValue().toString();
                     double lat = Double.parseDouble(dataSnapshot.child("lat").getValue().toString());
@@ -253,12 +269,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         mMap.addMarker(new MarkerOptions().position(new LatLng(m.getLat(), m.getLng())).title(m.getName()));
                     }
                 }
-                for(Friend f: friends) {
-                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) & !dataSnapshot.getKey().equals(thisKey) & dataSnapshot.child("name").getValue().toString().equals(f.getName())) {
-                        //print someone is nearby
-                        System.out.println("################################################################################ YES");
-                    }
-                }
+//                for(Friend f: friends) {
+//                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) & !dataSnapshot.getKey().equals(thisKey) & dataSnapshot.child("name").getValue().toString().equals(f.getName())) {
+//                        //print someone is nearby
+//                        System.out.println("################################################################################ YES");
+//                    }
+//                }
 //                mMembersList.add(s);
 
 //                memberName = dataSnapshot.getValue(String.class);

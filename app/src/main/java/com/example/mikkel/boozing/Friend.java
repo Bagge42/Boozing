@@ -6,27 +6,27 @@ package com.example.mikkel.boozing;
 
 public class Friend {
     private String name;
-    private String wifi;
+    private int phone;
 
-    public Friend(String name, String wifi) {
+    public Friend(String name, int phone) {
         this.name = name;
-        this.wifi = wifi;
+        this.phone = phone;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getWifi(){
-        return wifi;
+    public int getPhone(){
+        return phone;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setWifi(String wifi) {
-        this.wifi = wifi;
+    public void setphone(int phone) {
+        this.phone = phone;
     }
 }
 

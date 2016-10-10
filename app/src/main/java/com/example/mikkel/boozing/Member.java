@@ -1,5 +1,7 @@
 package com.example.mikkel.boozing;
 
+import java.util.ArrayList;
+
 /**
  * Created by emil on 9/29/16.
  */
