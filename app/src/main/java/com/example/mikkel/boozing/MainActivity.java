@@ -21,16 +21,11 @@ public class MainActivity extends AppCompatActivity {
     public final static String BONUS = "hvad er det her?";
 
     private String name;
-    private WifiManager mWifiManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSSIDInfo();
-        mWifiManager  = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        registerReceiver(mWifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        mWifiManager.startScan();
     }
 
     public void sendMessage(View view) {
@@ -47,39 +42,8 @@ public class MainActivity extends AppCompatActivity {
       og kald metoden hvor nødvendigt.
     */
 
-
-    public String getSSIDInfo(){
-        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-        WifiInfo wifiInfo =wifiManager.getConnectionInfo();
-
-        SupplicantState state = wifiInfo.getSupplicantState();
-        String ssid ="<N/A>";
-        if(state==SupplicantState.COMPLETED)
-        {
-            ssid = wifiInfo.getSSID();
-            if(ssid.startsWith("\"")&& ssid.endsWith("\""))
-                ssid=ssid.substring(1, ssid.length()-1);
-
-        }
-        System.out.println("###################################################  " + ssid);
-        return ssid;
-    }
-
     //EV -Lister alle tilgænglige netværk.
-    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
 
-                List<ScanResult> mScanResults = mWifiManager.getScanResults();
-                for(ScanResult result : mScanResults){
-                    System.out.println("###################PRINT###################: " + result.SSID); //result.etellerandet!!!
-                }
-
-
-            }
-        }
-    };
 
     /*TODO: (JLG) kom i tanke om at alle uni-SSID herfra og til grækenland hedder Eduroam
        så dette stykke henter istedet den tilknyttede Routers MAC adresse.

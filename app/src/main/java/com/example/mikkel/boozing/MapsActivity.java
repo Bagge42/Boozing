@@ -1,15 +1,22 @@
 package com.example.mikkel.boozing;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -27,17 +34,22 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private boolean movedAlready = true; //What for???
+    private String friendName;
     private GoogleMap mMap;
     private Location lastLoc; //Users current or last known location.
     public LocationManager locationManager;
     private String name;
     private Marker myLocation;
     private String thisKey = "";
+    private WifiManager mWifiManager;
+    private String thisSSID = "";
+    private ArrayList<Friend> friends = new ArrayList<Friend>();
 
     //EV -Firebase
     DatabaseReference mRootRef;
@@ -45,6 +57,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     ArrayList<Member> mMembersList;
 
+    public void sendMessage(View view) {
+        Intent intent = new Intent(this, Main2Activity.class);
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,24 +72,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         Intent intent = getIntent();
+        friendName = intent.getStringExtra(Main2Activity.EXTRA_MESSAGE);
         name = intent.getStringExtra(MainActivity.BONUS);
+
+        //wifi stuff
+        thisSSID = getSSIDInfo();
+        mWifiManager  = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        registerReceiver(mWifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        mWifiManager.startScan();
 
         //EV -Firebase
         mRootRef = FirebaseDatabase.getInstance().getReference(); //mDatabase.getReference("Child");
         mMembersList = new ArrayList<Member>();
         mMembersRef = mRootRef.child("Members");
 
-        DatabaseReference my_ref = mMembersRef.push();
-        thisKey = my_ref.getKey();
-        Member memberMe = new Member(name, 0, 0, thisKey);
-        my_ref.setValue(memberMe);
-        mMembersList.add(memberMe);
+        if(name != null) {
+            DatabaseReference my_ref = mMembersRef.push();
+            thisKey = my_ref.getKey();
+            Member memberMe = new Member(name, 0, 0, thisKey, thisSSID);
+            my_ref.setValue(memberMe);
+            mMembersList.add(memberMe);
+        }
+
 //        DatabaseReference newLat = newUser.push();
 //        DatabaseReference newLng = newUser.push();
 //        newUser.setValue(name);
 //        newLat.setValue(0);
 //        newLng.setValue(0);
-
+        System.out.println("########################################################################" + thisKey);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -96,6 +122,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
     }
 
+    public String getSSIDInfo(){
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo =wifiManager.getConnectionInfo();
+
+        SupplicantState state = wifiInfo.getSupplicantState();
+        String ssid ="<N/A>";
+        if(state==SupplicantState.COMPLETED)
+        {
+            ssid = wifiInfo.getSSID();
+            if(ssid.startsWith("\"")&& ssid.endsWith("\""))
+                ssid=ssid.substring(1, ssid.length()-1);
+
+        }
+        return ssid;
+    }
+
+    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+
+                ArrayList<String> wifis = new ArrayList<String>();
+                List<ScanResult> mScanResults = mWifiManager.getScanResults();
+                for(ScanResult result : mScanResults){
+                     if(!wifis.contains(result.SSID)) {
+                         wifis.add(result.SSID);
+                     }
+                }
+                String allWifis="Nearby WiFi's: ";
+                for(String m: wifis) {
+                    allWifis += m + ".\n ";
+                }
+                Toast.makeText(getBaseContext(), allWifis, Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+
     private final LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
@@ -104,6 +167,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             myLocation.setPosition(position);
             mMembersRef.child(thisKey).child("lat").setValue(lastLoc.getLatitude());
             mMembersRef.child(thisKey).child("lng").setValue(lastLoc.getLongitude());
+            String newWifiMaybe = getSSIDInfo();
+            if(!newWifiMaybe.equals(thisSSID)) {
+                mMembersRef.child(thisKey).child("wifi").setValue(newWifiMaybe);
+                thisSSID = newWifiMaybe;
+            }
             if(movedAlready) {
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
                 movedAlready = false;
@@ -159,14 +227,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if(dataSnapshot.getKey().equals(thisKey)) {
-
-                }
-                else {
+                if(!dataSnapshot.getKey().equals(thisKey)) {
+                    String wifi = dataSnapshot.child("wifi").getValue().toString();
                     String name = dataSnapshot.child("name").getValue().toString();
                     double lat = Double.parseDouble(dataSnapshot.child("lat").getValue().toString());
                     double lng = Double.parseDouble(dataSnapshot.child("lng").getValue().toString());
-                    Member m = new Member(name, lat, lng, dataSnapshot.getKey());
+                    Member m = new Member(name, lat, lng, dataSnapshot.getKey(), wifi);
                     mMembersList.add(m);
                     mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(name));
                 }
@@ -185,6 +251,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         m.setLat(Double.parseDouble(dataSnapshot.child("lat").getValue().toString()));
                         m.setLng(Double.parseDouble(dataSnapshot.child("lng").getValue().toString()));
                         mMap.addMarker(new MarkerOptions().position(new LatLng(m.getLat(), m.getLng())).title(m.getName()));
+                    }
+                }
+                for(Friend f: friends) {
+                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) & !dataSnapshot.getKey().equals(thisKey) & dataSnapshot.child("name").getValue().toString().equals(f.getName())) {
+                        //print someone is nearby
+                        System.out.println("################################################################################ YES");
                     }
                 }
 //                mMembersList.add(s);
