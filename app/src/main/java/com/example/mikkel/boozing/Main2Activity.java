@@ -9,6 +9,7 @@ import android.widget.EditText;
 public class Main2Activity extends AppCompatActivity {
     public final static String EXTRA_MESSAGE = "Ved stadig ikke hvad den her gør";
     public final static String KEY_MESSAGE = "Hallo";
+    public final static String FRIENDS_PHONE = "asdasdasf";
     private String ownerKey="";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +24,8 @@ public class Main2Activity extends AppCompatActivity {
         Bundle extras = new Bundle();
         EditText editText = (EditText) findViewById(R.id.editText2);
         String message = editText.getText().toString();
+        EditText friendsPhone = (EditText) findViewById(R.id.editText4);
+        extras.putString(FRIENDS_PHONE, friendsPhone.getText().toString());
         extras.putString(KEY_MESSAGE, ownerKey);
         extras.putString(EXTRA_MESSAGE, message);
         intent.putExtras(extras);

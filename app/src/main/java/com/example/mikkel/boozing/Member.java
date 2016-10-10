@@ -10,16 +10,16 @@ public class Member {
 
     private String wifi;
     private String name;
-    private String key;
+    private int number;
     private double lat;
     private double lng;
 
-    public Member(String name, double lat, double lng, String key, String wifi){
+    public Member(String name, double lat, double lng, int phone, String wifi){
         this.wifi = wifi;
         this.name = name;
         this.lat = lat;
         this.lng = lng;
-        this.key = key;
+        this.number = phone;
     }
 
     public String getWifi(){return wifi;}
@@ -28,8 +28,8 @@ public class Member {
         return name;
     }
 
-    public String getKey(){
-        return key;
+    public int getNumber(){
+        return number;
     }
 
     public double getLat(){

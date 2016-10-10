@@ -30,6 +30,19 @@
             android:layout_height="wrap_content"
             android:id="@+id/textView2" />
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:ems="10"
+            android:id="@+id/editText4" />
+
+        <TextView
+            android:text="And phone number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView4" />
+
         <Button
             android:text="Add friend"
             android:layout_width="match_parent"

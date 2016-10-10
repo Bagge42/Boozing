@@ -19,8 +19,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public final static String BONUS = "hvad er det her?";
+    public final static String PHONE = "hvad er t her?";
 
     private String name;
+    private String phone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,10 +32,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void sendMessage(View view) {
         Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+        Bundle extras = new Bundle();
         EditText editText = (EditText) findViewById(R.id.editText);
         name = editText.getText().toString();
+        EditText phoneText = (EditText) findViewById(R.id.editText3);
+        phone = phoneText.getText().toString();
         //String send_message = "" + lastLoc.getLatitude() + "," + lastLoc.getLongitude();
-        intent.putExtra(BONUS, name);
+        extras.putString(BONUS, name);
+        extras.putString(PHONE, phone);
+        intent.putExtras(extras);
         startActivity(intent);
     }
     /*TODO: (JLG) metoden nedenfor -burde- returnere et string objekt,

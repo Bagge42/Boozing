@@ -39,7 +39,7 @@ import java.util.Scanner;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    public final static String keyMessage = "Ved stadig ikke hvad den her gør";
+    public final static String keyMessage = "Ved stadig ikke rigtigt hvad den her gør";
     private boolean movedAlready = true; //What for???
     private String friendName;
     private GoogleMap mMap;
@@ -47,21 +47,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public LocationManager locationManager;
     private String name;
     private Marker myLocation;
-    private String thisKey = "";
     private WifiManager mWifiManager;
     private String thisSSID = "";
+    private String phone;
 
     //EV -Firebase
     DatabaseReference mRootRef;
     DatabaseReference mMembersRef;
-    DatabaseReference friendsRef;
-    DatabaseReference friends_ref;
 
     ArrayList<Member> mMembersList;
 
     public void sendMessage(View view) {
         Intent intent = new Intent(this, Main2Activity.class);
-        intent.putExtra(keyMessage, thisKey);
+        intent.putExtra(keyMessage, phone);
         startActivity(intent);
     }
 
@@ -87,23 +85,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
-        name = intent.getStringExtra(MainActivity.BONUS);
+        name = extras.getString(MainActivity.BONUS);
+        phone = extras.getString(MainActivity.PHONE);
         if(name != null) {
-            DatabaseReference my_ref = mMembersRef.push();
-            thisKey = my_ref.getKey();
-            friendsRef = mMembersRef.child(thisKey);
-            friends_ref = friendsRef.push();
-            Member memberMe = new Member(name, 0, 0, thisKey, thisSSID);
-            my_ref.setValue(memberMe);
+            DatabaseReference mMe = mMembersRef.child(phone);
+            Member memberMe = new Member(name, 0, 0, Integer.parseInt(phone),thisSSID);
+            mMe.setValue(memberMe);
+            mMe.child("Friends");
             mMembersList.add(memberMe);
         }
         else {
             friendName = extras.getString(Main2Activity.EXTRA_MESSAGE);
-            thisKey = extras.getString(Main2Activity.KEY_MESSAGE);
-            DatabaseReference fRef = friends_ref.push();
-            String friendsKey = fRef.getKey();
-            Friend friend = new Friend(friendName, 00);
-            fRef.setValue(friend);
+            phone = extras.getString(Main2Activity.KEY_MESSAGE);
+            mMembersRef.child(phone).child("Friends").child(extras.getString(Main2Activity.FRIENDS_PHONE)).setValue(friendName);
         }
 
 //        DatabaseReference newLat = newUser.push();
@@ -175,20 +169,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onLocationChanged(Location location) {
             lastLoc = location; //Last location becomes current locating... for a while...
             LatLng position = new LatLng(lastLoc.getLatitude(), lastLoc.getLongitude());
-            myLocation.setPosition(position);
             if(name != null) {
-                mMembersRef.child(thisKey).child("lat").setValue(lastLoc.getLatitude());
-                mMembersRef.child(thisKey).child("lng").setValue(lastLoc.getLongitude());
+                mMembersRef.child(phone).child("lat").setValue(lastLoc.getLatitude());
+                mMembersRef.child(phone).child("lng").setValue(lastLoc.getLongitude());
             }
             String newWifiMaybe = getSSIDInfo();
             if(!newWifiMaybe.equals(thisSSID)) {
-                mMembersRef.child(thisKey).child("wifi").setValue(newWifiMaybe);
+                mMembersRef.child(phone).child("wifi").setValue(newWifiMaybe);
                 thisSSID = newWifiMaybe;
             }
             if(movedAlready) {
+                myLocation = mMap.addMarker(new MarkerOptions().position(position).title(name));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
                 movedAlready = false;
             }
+            myLocation.setPosition(position);
 //            Toast.makeText(getBaseContext(), ""+location.getLongitude(), Toast.LENGTH_LONG).show();
             //Run a method for pushing users location to server. aprox. 1min. interval
         }
@@ -225,7 +220,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(0, 0);
-        myLocation = mMap.addMarker(new MarkerOptions().position(sydney).title(name));
+
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
@@ -236,19 +231,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMembersRef.addChildEventListener(new ChildEventListener() {
 
 
-//            ArrayList<String> list = mMembersList.get(i);
+            ArrayList<String> list = new ArrayList<String>();
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if(dataSnapshot.getKey().equals(thisKey)) {
+                if(dataSnapshot.getKey().equals(phone)) {
                     name = dataSnapshot.child("name").getValue().toString();
+                    for (DataSnapshot d : dataSnapshot.child("Friends").getChildren()) {
+                        if(!list.contains(d.getKey().toString())) {
+                            list.add(d.getKey().toString());
+                        }
+                    }
                 }
                 else {
                     String wifi = dataSnapshot.child("wifi").getValue().toString();
                     String name = dataSnapshot.child("name").getValue().toString();
                     double lat = Double.parseDouble(dataSnapshot.child("lat").getValue().toString());
                     double lng = Double.parseDouble(dataSnapshot.child("lng").getValue().toString());
-                    Member m = new Member(name, lat, lng, dataSnapshot.getKey(), wifi);
+                    Member m = new Member(name, lat, lng, Integer.parseInt(dataSnapshot.getKey()), wifi);
                     mMembersList.add(m);
                     mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(name));
                 }
@@ -263,19 +263,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
                 for(Member m: mMembersList) {
-                    if(dataSnapshot.getKey().equals(m.getKey()) & !thisKey.equals(m.getKey())){
+                    if(dataSnapshot.getKey().equals(m.getNumber()) & !phone.equals(m.getNumber())){
                         m.setLat(Double.parseDouble(dataSnapshot.child("lat").getValue().toString()));
                         m.setLng(Double.parseDouble(dataSnapshot.child("lng").getValue().toString()));
                         mMap.addMarker(new MarkerOptions().position(new LatLng(m.getLat(), m.getLng())).title(m.getName()));
                     }
                 }
-//                for(Friend f: friends) {
-//                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) & !dataSnapshot.getKey().equals(thisKey) & dataSnapshot.child("name").getValue().toString().equals(f.getName())) {
-//                        //print someone is nearby
-//                        System.out.println("################################################################################ YES");
-//                    }
-//                }
-//                mMembersList.add(s);
+                for(String friend: list) {
+                    System.out.println("¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤" + friend);
+                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) & !dataSnapshot.getKey().equals(phone) & dataSnapshot.getKey().toString().equals(friend)) {
+                        //print someone is nearby
+                        //Den her sysout bliver aldrig printet, ved ikke hvorfor. Den burde blive printet når man tilføjer en ven med et
+                        // telefon nummer som ligger i databasen, hvis det er sådan at vennen og en selv er på samme wifi.
+                        System.out.println("################################################################################ YES");
+                    }
+                }
 
 //                memberName = dataSnapshot.getValue(String.class);
 //                System.out.println("The member is..." + mMembersList.get(1));
