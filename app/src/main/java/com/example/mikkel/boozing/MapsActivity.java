@@ -263,7 +263,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
                 for(Member m: mMembersList) {
-                    if(dataSnapshot.getKey().equals(m.getNumber()) & !phone.equals(m.getNumber())){
+                    if(dataSnapshot.getKey().equals(m.getNumber()) && !phone.equals(m.getNumber())){
                         m.setLat(Double.parseDouble(dataSnapshot.child("lat").getValue().toString()));
                         m.setLng(Double.parseDouble(dataSnapshot.child("lng").getValue().toString()));
                         mMap.addMarker(new MarkerOptions().position(new LatLng(m.getLat(), m.getLng())).title(m.getName()));
@@ -271,7 +271,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 for(String friend: list) {
                     System.out.println("¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤" + friend);
-                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) & !dataSnapshot.getKey().equals(phone) & dataSnapshot.getKey().toString().equals(friend)) {
+                    if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) && !dataSnapshot.getKey().equals(phone) && dataSnapshot.getKey().toString().equals(friend)) {
                         //print someone is nearby
                         //Den her sysout bliver aldrig printet, ved ikke hvorfor. Den burde blive printet når man tilføjer en ven med et
                         // telefon nummer som ligger i databasen, hvis det er sådan at vennen og en selv er på samme wifi.
