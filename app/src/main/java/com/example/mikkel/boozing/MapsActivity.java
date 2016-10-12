@@ -1,5 +1,8 @@
 package com.example.mikkel.boozing;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +21,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.NotificationCompat;
 import android.view.View;
 import android.widget.Toast;
 
@@ -34,6 +38,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,6 +137,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         /*Scanner sc = new Scanner(msg);
         double lat = sc.nextDouble(), lng = sc.nextDouble();*/
         //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+
+        //EV -Notifications
+
     }
 
     public String getSSIDInfo(){
@@ -282,7 +290,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         System.out.println("################################################################################ ...and the networks are a match. WOHOOOO!!!!");
                         System.out.println("################################################################################ ...by the way, the nme of your friend is "
                                 + dataSnapshot.child("name").getValue().toString());
+                        //EV -Notifications
                         showAlert(dataSnapshot.child("name").getValue().toString());
+
+//                        showNotification(dataSnapshot.child("name").getValue().toString());  //EV -Notifications an other variant
+
+                        Intent intent = new Intent();
+                        PendingIntent pIntent = PendingIntent.getActivity(MapsActivity.this,0,intent,0);
+                        Notification noti = new Notification.Builder(MapsActivity.this)
+                                .setTicker("BOOOOOZZZZZ")
+                                .setContentTitle("IMPORTAT!!!")
+                                .setContentText("Wanna go Boozing with " + dataSnapshot.child("name").getValue().toString() + "?")
+                                .setSmallIcon(R.drawable.ic_stat_name)
+                                .setContentIntent(pIntent).getNotification();
+
+                        noti.flags = Notification.FLAG_AUTO_CANCEL;
+                        noti.flags = Notification.FLAG_SHOW_LIGHTS;
+                        NotificationManager nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+                        nm.notify(0,noti);
+
                     }
                 }
 
@@ -328,6 +354,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
+    //EV -In app notification method.
     private void showAlert(String name) {
         AlertDialog.Builder myAlert = new AlertDialog.Builder(this);
         myAlert.setMessage("Wanna go Boozing with " + name + "?").setPositiveButton("Sure, why not!",
@@ -336,7 +363,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                }).setTitle("Incomming notification about your opportunities to get really pissed...!").create();
+                }).setTitle("Incoming notification about your opportunities to get pissed...!").create();
         myAlert.show();
     }
+
+    //EV -Notifications an other variant
+//    private void showNotification(String name) {
+//        NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this);
+//        nBuilder.setContentTitle("IMPORTANT!!!");
+//        nBuilder.setContentText("Wanna go Boozing with " + name + "?");
+//        nBuilder.setSmallIcon(R.drawable.ic_stat_name);
+//
+//        Notification notification = nBuilder.build();
+//        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//        nm.notify(0, notification);
+//    }
+
+
 }
