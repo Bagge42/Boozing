@@ -57,6 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private WifiManager mWifiManager;
     private String thisSSID = "";
     private String phone;
+    private boolean wifiShownAlready = true;
 
     //EV -Firebase
     DatabaseReference mRootRef;
@@ -174,7 +175,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 for(String m: wifis) {
                     allWifis += m + ".\n ";
                 }
-                Toast.makeText(getBaseContext(), allWifis, Toast.LENGTH_LONG).show();
+                if(wifiShownAlready) {
+                    Toast.makeText(getBaseContext(), allWifis, Toast.LENGTH_LONG).show();
+                }
+                wifiShownAlready = false;
             }
         }
     };
@@ -299,8 +303,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         PendingIntent pIntent = PendingIntent.getActivity(MapsActivity.this,0,intent,0);
                         Notification noti = new Notification.Builder(MapsActivity.this)
                                 .setTicker("BOOOOOZZZZZ")
-                                .setContentTitle("IMPORTAT!!!")
-                                .setContentText("Wanna go Boozing with " + dataSnapshot.child("name").getValue().toString() + "?")
+                                .setContentTitle("IMPORTANT!!!")
+                                .setContentText(dataSnapshot.child("name").getValue().toString() + "is near your location, wanna go Boozing with " + "?")
                                 .setSmallIcon(R.drawable.ic_stat_name)
                                 .setContentIntent(pIntent).getNotification();
 
@@ -357,7 +361,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //EV -In app notification method.
     private void showAlert(String name) {
         AlertDialog.Builder myAlert = new AlertDialog.Builder(this);
-        myAlert.setMessage("Wanna go Boozing with " + name + "?").setPositiveButton("Sure, why not!",
+        myAlert.setMessage(name + " is near your location, wanna go Boozing with " + name + "?").setPositiveButton("Sure, why not!",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
