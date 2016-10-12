@@ -55,11 +55,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DatabaseReference mRootRef;
     DatabaseReference mMembersRef;
 
+    ArrayList<String> list = new ArrayList<String>();
+
     ArrayList<Member> mMembersList;
 
     public void sendMessage(View view) {
         Intent intent = new Intent(this, Main2Activity.class);
-        intent.putExtra(keyMessage, phone);
+        Bundle extras = new Bundle();
+        extras.putString(keyMessage, phone);
+        extras.putSerializable("myList", list);
+        intent.putExtras(extras);
         startActivity(intent);
     }
 
@@ -80,8 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //EV -Firebase
         mRootRef = FirebaseDatabase.getInstance().getReference(); //mDatabase.getReference("Child");
-        mMembersList = new ArrayList<Member>();
         mMembersRef = mRootRef.child("Members");
+        mMembersList = new ArrayList<Member>();
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
@@ -229,9 +234,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStart();
 
         mMembersRef.addChildEventListener(new ChildEventListener() {
-
-
-            ArrayList<String> list = new ArrayList<String>();
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
