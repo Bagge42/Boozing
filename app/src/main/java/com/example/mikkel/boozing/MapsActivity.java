@@ -2,6 +2,7 @@ package com.example.mikkel.boozing;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -16,6 +17,7 @@ import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Toast;
 
@@ -272,12 +274,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
                 for(String friend: list) {
-                    System.out.println("¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤" + friend);
+                    System.out.println("¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤ Your friend " + friend + " has changed network status");
                     if (dataSnapshot.child("wifi").getValue().toString().equals(thisSSID) && !dataSnapshot.getKey().equals(phone) && dataSnapshot.getKey().toString().equals(friend)) {
                         //print someone is nearby
                         //Den her sysout bliver aldrig printet, ved ikke hvorfor. Den burde blive printet når man tilføjer en ven med et
                         // telefon nummer som ligger i databasen, hvis det er sådan at vennen og en selv er på samme wifi.
-                        System.out.println("################################################################################ YES");
+                        System.out.println("################################################################################ ...and the networks are a match. WOHOOOO!!!!");
+                        System.out.println("################################################################################ ...by the way, the nme of your friend is "
+                                + dataSnapshot.child("name").getValue().toString());
+                        showAlert(dataSnapshot.child("name").getValue().toString());
                     }
                 }
 
@@ -319,5 +324,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
+    }
+
+
+
+    private void showAlert(String name) {
+        AlertDialog.Builder myAlert = new AlertDialog.Builder(this);
+        myAlert.setMessage("Wanna go Boozing with " + name + "?").setPositiveButton("Sure, why not!",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).setTitle("Incomming notification about your opportunities to get really pissed...!").create();
+        myAlert.show();
     }
 }
